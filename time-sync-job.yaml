@@ -1,15 +1,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: time-sync-job
+  name: time-job
 spec:
   template:
     spec:
       containers:
-      - name: time-sync
-        image: alpine
-        command: ["/bin/sh", "-c"]
-        args: ["apk update && apk add --no-cache curl jq && while true; do pod_time=$(date +%s); atomic_time=$(curl -s https://worldclockapi.com/api/json/utc/now | jq -r '.currentFileTimeUnix'); time_diff=$((atomic_time - pod_time)); echo 'Time on pod: ' && date && echo 'Current atomic time: ' && curl -s --head https://worldclockapi.com/api/json/utc/now | grep -i date && echo 'Time difference (in seconds): ' $time_diff; sleep 10; done"]
+      - name: time
+        image: ubuntu
+        command: ["/bin/bash"]
+        args: ["-c", "apt-get update && apt-get install -y dnsutils curl jq && while true; do pod_time=$(date +%s); atomic_time=$(curl -s http://www.worldtimeapi.org/api/timezone/Etc/UTC | jq -r '.unixtime');  echo 'Time on pod: '&& echo $pod_time ;  echo 'Current atomic time: ' && echo $atomic_time ; sleep 600; done"]
         env:
         - name: TZ
           value: "YOUR_TIMEZONE"  # replace with your desired timezone
@@ -18,4 +18,3 @@ spec:
         - name: LC_ALL
           value: "en_US.UTF-8"  # adjust language settings if needed
       restartPolicy: OnFailure
-  backoffLimit: 4
